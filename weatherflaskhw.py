@@ -43,7 +43,7 @@ def index():
         f"/api/v1.0/precipitation<br/>"
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
-        f"/api/v1.0//api/v1.0/<start_End><br/>"
+        f"/api/v1.0/Start_and_EndDate<br/>"
         f"about"
         )
 
@@ -95,11 +95,59 @@ def tobs():
         all_tobs.append(tobs_dict)
      return jsonify(all_tobs)
 
-@app.route("/api/v1.0//api/v1.0/<start_End>")
+@app.route("/api/v1.0/Start_and_EndDate")
 def startstop():
-    email = "peleke@example.com"
+    startdt = "2017-01-01"
+    endt="2017-01-07"
+    vr_res = session.query(Measurement.date,(func.Max(Measurement.tobs)),(func.Min(Measurement.tobs)),(func.avg(Measurement.tobs))).\
+                    filter(Measurement.date >= startdt,Measurement.date <= endt)
+    all_vtobs = []
+    for vtobs in vr_res:
+        vtobs_dict = {}
+        vtobs_dict["Daterange"] = f" for the entire vacation Date range {startdt} and {endt} Max, Avg and Min Temps"
+        vtobs_dict["TMax"] = vtobs[1]
+        vtobs_dict["TMin"] = vtobs[2]
+        vtobs_dict["TAvg"] = vtobs[3]        
+        all_vtobs.append(vtobs_dict)
+    
+    vr1_res=session.query(Measurement.date,(func.Max(Measurement.tobs)),(func.Min(Measurement.tobs)),(func.avg(Measurement.tobs))).\
+                    filter(Measurement.date >= startdt,Measurement.date <= endt).group_by(Measurement.date)
 
-    return f"Questions? Comments? Complaints? Shoot an email to {email}."
+    
+    for vtobs2 in vr1_res:
+        vtobs2_dict = {}
+        vtobs2_dict["Daterange"] = f" for the Date range {startdt} and {endt} Max, Avg and Min Temps for the day {vtobs2.date} of vacation"
+        vtobs2_dict["TMax"] = vtobs2[1]
+        vtobs2_dict["TMin"] = vtobs2[2]
+        vtobs2_dict["TAvg"] = vtobs2[3]        
+              
+        all_vtobs.append(vtobs2_dict)
+
+    vr_res1 = session.query(Measurement.date,(func.Max(Measurement.tobs)),(func.Min(Measurement.tobs)),(func.avg(Measurement.tobs))).\
+                    filter(Measurement.date >= startdt)
+    
+    for vtobs1 in vr_res1:
+        vtobs1_dict = {}
+        vtobs1_dict["Daterange"] = f" for the Entire Date range {startdt} and No End Date  Max, Avg and Min Temps"
+        vtobs1_dict["TMax"] = vtobs1[1]
+        vtobs1_dict["TMin"] = vtobs1[2]
+        vtobs1_dict["TAvg"] = vtobs1[3]  
+    all_vtobs.append(vtobs1_dict)
+    
+    
+    vr_res11 = session.query(Measurement.date,(func.Max(Measurement.tobs)),(func.Min(Measurement.tobs)),(func.avg(Measurement.tobs))).\
+                    filter(Measurement.date >= startdt).group_by(Measurement.date)
+
+
+    for vtobs22 in vr_res11:
+        vtobs22_dict = {}
+        vtobs22_dict["Daterange"] = f" for the Date range {startdt} and No End Date  Max, Avg and Min Temps for the day {vtobs22.date}"
+        vtobs22_dict["TMax"] = vtobs22[1]
+        vtobs22_dict["TMin"] = vtobs22[2]
+        vtobs22_dict["TAvg"] = vtobs22[3]        
+        all_vtobs.append(vtobs22_dict)
+
+    return jsonify(all_vtobs)
 
 
 
